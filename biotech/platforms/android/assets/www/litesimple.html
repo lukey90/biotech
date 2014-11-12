@@ -1,0 +1,825 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>PhoneGap Dynamic Pages Demo</title>
+
+    
+	<link rel="stylesheet" type="text/css" href="css/index.css" />
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.2.min.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="gall/blueimp-gallery.min.css">
+
+    
+    
+    <style>
+         #container { 
+             width: 100%;
+             height: 500px;
+             position: relative;
+             overflow-y:scroll;
+        } 
+
+        button {
+            display:block;
+            text-align:center;
+            margin:0 auto;
+            width:100%;
+            height:2em;
+        }
+        
+        hr {
+		   	border-color: #357ebd;
+			border-style: solid none;
+			border-width: 2px 0;
+			margin: 10px 0;								
+        }
+        
+
+
+        .info {
+            border:1px solid black;
+            background:#eeeeff;
+            margin:5px;
+            padding:5px;
+        }
+         
+        
+		
+		.myDiv {
+		    position: relative;
+		    z-index: 1;
+		    height:100px;
+		}
+		
+		.myDiv .bg {
+		  position: absolute;
+		    z-index: -1;
+		    top: 0;
+		    bottom: 0;
+		    left: 0;
+		    right: 0;
+		    opacity: .4;
+		    width: 100%;
+		    height: 100%;
+		}
+		
+		.advsel{ width: 100% }
+		
+        
+    </style>
+    <script type="text/javascript" src="js/jquery-2.1.0.min.js"></script>
+ 	<script type="text/javascript" src="js/jquery.mobile-1.4.2.js"></script>
+ 	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+ 	
+ 	<script type="text/javascript" src="js/app.js"></script>
+	<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+    <script src="http://maps.google.com/maps/api/js?sensor=true"></script>
+ 	
+    <script type="text/javascript" charset="utf-8" src="SQLitePlugin.js"></script>
+    <script type="text/javascript" charset="utf-8" src="phonegap-1.1.0.js"></script>
+    <script type="text/javascript" charset="utf-8" src="screen3.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/e-smart-zoom-jquery.min.js"></script>
+
+    <script src="gall/blueimp-helper.js"></script>
+    
+	<script src="gall/blueimp-gallery.min.js"></script>
+	
+    <script type="text/javascript" charset="utf-8">
+    var db;
+	var toAppend;
+    var backHistory = new Array();
+    /**
+     * Load page into url
+     *
+     * @param url           The url to load
+     * @param onleave       The function to call before leaving
+     * @param onenter       The function to call after loading
+     
+     
+     
+     */
+    function loadPage(url, onleave, onenter) {
+        console.log("loadPage("+url+")");
+        //swHide();
+        //backHistory.push("loadPage("+url+")");
+        var tmp = {
+   	        url: 'loadPage',
+   	        param: [url]
+   	    };
+		backHistory.push(tmp);
+        //alert(backHistory.pop());
+        // If onleave function specified
+        if (onleave) {
+            onleave();
+        }
+        var search = 0;
+        if(url == 'search.html'){
+        	url = 'home.html';
+        	search = 1;
+        	//SearchDB();
+        }
+        if(url == 'advsearch.html'){
+        	url = 'home.html';
+        	search = 2;
+        	//SearchDB();
+        }
+        var xmlhttp = new XMLHttpRequest();
+
+        // Callback function when XMLHttpRequest is ready
+        xmlhttp.onreadystatechange=function(){
+            if(xmlhttp.readyState === 4){
+                if (xmlhttp.status === 200) {
+                    console.log("Received content"+xmlhttp.responseText);
+                    document.getElementById('container').innerHTML = xmlhttp.responseText;
+                    if(url == 'home.html' && search == 0){
+                    	ListDBValues();
+                    	
+                    	//SearchDB();
+                    }
+                    if(url == 'home.html' && search == 1){
+                    	SearchDB($('#txtSearch').val());
+                    }
+                    if(url == 'home.html' && search == 2){
+                    	submitAdvSrch();
+                    }
+                    if(url == 'advancedSearch.html'){
+                    	$("#toAppend").append(toAppend.innerHTML);
+                    }
+                    // If onenter function specified
+                    if (onenter) {
+                        onenter();
+                    }
+                }
+                else {
+                    //document.getElementById('container').innerHTML = "Error loading page " + url;
+                }
+            }
+        };
+        xmlhttp.open("GET", url , true);
+        
+        xmlhttp.send();
+    }
+    
+    function loadBuild(id) {
+    	var url = 'build.html';
+        console.log("loadPage("+url+")");
+        var tmp = {
+      	        url: 'loadBuild',
+      	        param: [id]
+      	    };
+   		backHistory.push(tmp);
+        var xmlhttp = new XMLHttpRequest();
+
+        // Callback function when XMLHttpRequest is ready
+        xmlhttp.onreadystatechange=function(){
+            if(xmlhttp.readyState === 4){
+                if (xmlhttp.status === 200) {
+                    console.log("Received content"+xmlhttp.responseText);
+                    document.getElementById('container').innerHTML = xmlhttp.responseText;
+                    Gallery(id);
+                    GetBuild(id);
+                    
+                    
+                    // If onenter function specified
+                    if (onenter) {
+                        onenter();
+                    }
+                }
+                else {
+                    document.getElementById('container').innerHTML = "Error loading page " + url;
+                }
+            }
+        };
+        xmlhttp.open("GET", url , true);
+        xmlhttp.send();
+
+    }
+    
+    function getOptionsFromDb(select){
+    	var db = window.sqlitePlugin.openDatabase({name: "mydatabase"});
+		if (!window.openDatabase) {
+		 alert('Databases are not supported in this browser.');
+		 return;
+		}
+	
+	   	var obj; 
+    	db.transaction(function(transaction) {
+       	transaction.executeSql(select, [],
+       	  function(transaction, result) {
+       	   if (result != null && result.rows != null) {
+			
+       	     for (var i = 0; i < result.rows.length; i++) {
+       	       var row = result.rows.item(i);
+       	     }
+  	  		obj = result;
+
+       	   }
+       	  },errorHandler);
+       	},errorHandler,nullHandler); 
+    	return obj;
+    }
+    
+    var options = [
+           		{name:"imple", select:"Select id, Name from Implemen", label: "Implementacija"}
+           		,{name:"const", select:"Select id, Name from Construct", label: "Konstrukcija"}
+           		];
+    
+    function fillAdvSearch(){
+
+    	var divElement=document.createElement('div'); 
+    	for(j = 0; j< options.length; j++){
+    		//alert("element "+options[j]);
+        	var newSelect=document.createElement('select');
+        	var newlabel = document.createElement("Label");
+        	newlabel.setAttribute("for",options[j].name);
+            newlabel.innerHTML = options[j].label;
+			//newSelect.id(options[j].name);
+			newSelect.setAttribute("id", options[j].name);
+			newSelect.setAttribute("class", "advsel");
+
+        	var queryResult = getOptionsFromDb(options[j].select);
+			if(queryResult != null){
+				var optDefault = document.createElement("option");
+				optDefault.value = 0;
+				optDefault.innerHTML = "Izberi";
+				newSelect.appendChild(optDefault);
+				for (var i = 0; i < queryResult.rows.length; i++) {
+	  	        	var row = queryResult.rows.item(i);
+		       	    var opt = document.createElement("option");
+	    			opt.value= row.id;
+	    			opt.innerHTML = row.Name;
+	    			newSelect.appendChild(opt);
+	       	    }
+				newSelect.value = 0;
+	        	divElement.appendChild(newlabel);	
+	        	divElement.appendChild(newSelect);
+	        	var br = document.createElement('br');
+	        	divElement.appendChild(br);
+
+			}
+    	}
+    	toAppend = divElement;
+    	//alert("divElement "+toAppend.innerHTML);
+
+    	$("#toAppend").append(divElement);
+    	
+    }
+    
+    function preLoad(lat, lon, map) {
+    	loadMap(lat, lon, map);
+    }
+    
+    function loadMap(lat, lon, map) {
+    	var url = 'map2.html';
+        console.log(lat+"   "+  lon);
+        var tmp = {
+      	        url: 'loadMap',
+      	        param: [lat, lon]
+      	    };
+   		backHistory.push(tmp);
+        //backHistory.push("loadMap("+lat+","+lon+")");
+        var xmlhttp = new XMLHttpRequest();
+
+        // Callback function when XMLHttpRequest is ready
+        xmlhttp.onreadystatechange=function(){
+            if(xmlhttp.readyState === 4){
+                if (xmlhttp.status === 200) {
+                    console.log("Received content"+xmlhttp.responseText);
+                    document.getElementById('container').innerHTML = xmlhttp.responseText;
+                    //navigator.geolocation.getCurrentPosition(displayCurrentLocation);
+                    var networkState = navigator.connection.type;
+                    var states = {};
+                    states[Connection.UNKNOWN]  = 'Unknown connection';
+                    states[Connection.ETHERNET] = 'Ethernet connection';
+                    states[Connection.WIFI]     = 'WiFi connection';
+                    states[Connection.CELL_2G]  = 'Cell 2G connection';
+                    states[Connection.CELL_3G]  = 'Cell 3G connection';
+                    states[Connection.CELL_4G]  = 'Cell 4G connection';
+                    states[Connection.CELL]     = 'Cell generic connection';
+                    states[Connection.NONE]     = 'No network connection';
+
+                    //alert('Connection type: ' + states[networkState]);
+                    if(networkState == Connection.NONE){
+                    	displayOffline(map);
+                    }
+                    else{
+                        displayCurrentLocation(lat,lon)
+                    }
+                }
+                else {
+                    //document.getElementById('container').innerHTML = "Error loading page " + url;
+                }
+            }
+        };
+        xmlhttp.open("GET", url , true);
+        xmlhttp.send();
+
+
+    }
+    
+    function displayOffline(map){
+    	$("#map_canvas").append('<img src="images/map/'+map+'" id="myImage"> ');
+    	$("#myImage").smartZoom();
+    	//$("#map_canvas").append('<div style="background: url(images/map/'+map+') center center;background-position: center;background-repeat: no-repeat;background-size:100%;position: absolute;height:100%;"></div> ');
+    	//$("#map_canvas").append('<div style="background: url("images/map/'+map+'") no-repeat center center fixed;-webkit-background-size: cover;-moz-background-size: cover;-o-background-size: cover;background-size: cover;"></div> ');
+		//alert($("#map_canvas").innerHTML);
+		//alert('<div style="background: url("images/map/'+map+'") no-repeat center center fixed;-webkit-background-size: cover;-moz-background-size: cover;-o-background-size: cover;background-size: cover;"></div> ');
+
+    	
+    }
+    
+    function transferComplete(evt) {
+    	  //alert("The transfer is complete.");
+    	}
+    
+    function displayCurrentLocation(lat,lon){
+   	  //function displayCurrentLocation(position){
+
+    	//alert(lon+ " "+ lat);
+
+     	console.log("Entering displayCurrentLocation()");
+		  try{
+		   var currentLocationLatAndLong = new google.maps.LatLng(lat,lon);
+		   var mapOptions ={
+		    zoom:15,
+		    center:currentLocationLatAndLong,
+		    mapTypeId: google.maps.MapTypeId.ROADMAP
+		   };
+		   var mapDiv = document.getElementById("map_canvas");
+		   map = new google.maps.Map(mapDiv,mapOptions);
+		   var marker = new google.maps.Marker({
+			      position: currentLocationLatAndLong,
+			      map: map,
+			      title: 'Hello World!'
+			  });
+		   
+		   var infowindow = new google.maps.InfoWindow({
+			      content: 'test:'
+			    });
+		   
+		    makeInfoWindowEvent(map, infowindow, marker);
+		  
+		  }catch(e){
+		   console.log("Error occured in ConsultantLocator.displayMap() " + e);
+		  }
+		     console.log("Exiting displayCurrentLocation()");
+		    }
+   	function makeInfoWindowEvent(map, infowindow, marker) {
+  	  google.maps.event.addListener(marker, 'click', function() {
+  	    infowindow.open(map, marker);
+  	  });
+  	}
+   	  
+    /**
+     * Function called when page has finished loading.
+     */
+    function init() {
+
+        // Register for PhoneGap deviceready event
+        document.addEventListener("deviceready", function() {console.log("PhoneGap initialized.")}, false);
+        document.addEventListener("backbutton", onBackKeyDown, false);
+        // Load first page into container
+        //loadPage("screen1.html");
+        db = window.sqlitePlugin.openDatabase({name: "mydatabase"});
+        fillAdvSearch();
+        onBodyLoad();
+        loadPage("home.html");
+    }
+    function onBackKeyDown(){
+        //loadPage("home.html");
+    	// find object
+    	backHistory.pop();
+    	var bck = backHistory.pop();
+    	//alert(bck);
+    	//alert(bck["url"]);
+    	var fn = window[bck["url"]];
+    	 
+    	// is object a function?
+    	if (typeof fn === "function") fn.apply(null, bck["param"]);    
+    }
+    </script>
+    <script type="text/javascript" charset="utf-8">
+    var shortName = 'WebSqlDB';
+    var version = '1.0';
+    var displayName = 'WebSqlDB';
+    var maxSize = 65535;
+    
+    function errorHandler(transaction, error) {
+       //alert('Error: ' + error.message + ' code: ' + error.code);
+
+    }
+    function successCallBack() {
+       //alert("DEBUGGING: success");
+
+    }
+    function nullHandler(){};
+    function onBodyLoad(){
+
+    	//alert("DEBUGGING: we are in the onBodyLoad() function");
+
+    	 if (!window.openDatabase) {
+    	   alert('Databases are not supported in this browser.');
+    	   return;
+    	 }
+
+         
+    }
+    
+    	
+    	
+    
+    
+    function ListDBValues() {
+  	  //alert('tttttt');
+      //var db = window.sqlitePlugin.openDatabase({name: "Database", bgType: 1});
+      //var db = window.sqlitePlugin.openDatabase({name: "mydatabase"});
+
+    	 if (!window.openDatabase) {
+    	  alert('Databases are not supported in this browser.');
+    	  return;
+    	 }
+
+    	 $('#lbConstruct').html('');
+    	 
+     	db.transaction(function(transaction) {
+        	transaction.executeSql('SELECT * FROM House;', [],
+        	  function(transaction, result) {
+        	   if (result != null && result.rows != null) {
+        	     for (var i = 0; i < result.rows.length; i++) {
+        	       var row = result.rows.item(i);
+        	       //$('#lbConstruct').append('<br><button type="button" class=" btn btn-primary btn-lg btn-block" onclick="loadBuild('+row.id+')"> ' + row.Name+ '</button>');
+        	       //$('#lbConstruct').append('<div class="box" onclick="loadBuild('+row.id+')">' + row.Name+ '</div>');
+        	       $('#lbConstruct').append('<div class="myDiv" onclick="loadBuild('+row.id+')"><div class="bg" style="background: url(images/'+row.Cover+') center center;background-position: center;background-repeat: no-repeat;background-size:100%;"></div>' + row.Name+ '</div>');
+        	     }
+        	   }
+        	  },errorHandler);
+        	},errorHandler,nullHandler); 
+
+    	 
+    	 return;
+
+    	}
+    //function SearchDB() {
+    function SearchDB(SearchText) {
+		
+      	 if (!window.openDatabase) {
+      	  alert('Databases are not supported in this browser.');
+      	  return;
+      	 }
+         //var db = window.sqlitePlugin.openDatabase({name: "mydatabase"});
+
+      	db.transaction(function(tx) {
+            /*
+      		tx.executeSql('DROP TABLE IF EXISTS BookSearch');
+
+            tx.executeSql('CREATE VIRTUAL TABLE IF NOT EXISTS BookSearch USING fts4(id, Name ,'                      
+                    +' Category ,'                  
+                    +' Loc ,'                       
+                    +' Long,'                      
+                    +' Lati,'                      
+                    +' Arch ,'                      
+                    +' ArchBiro ,'                  
+                    +' ArchUrl ,'                   
+                    +' Construct ,'                 
+                    +' ConstURL ,'                  
+                    +' Impl ,'                   	 
+                    +' ImplURL ,'                   
+                    +' YearBuilt,'              
+                    +' Duration ,'                   
+                    +' Construction ,'              
+                    +' EnergyEconomy ,'             
+                    +' EnergyHeating ,'             
+                    +' Area ,'                      
+                    +' Parcel ,'                    
+                    +' UValue ,'                    
+                    +' Tech ,'                      
+                    +' Desc)');
+            
+            tx.executeSql('INSERT INTO BookSearch SELECT * FROM House;');
+            */
+       	 	$('#lbConstruct').html('');
+
+            tx.executeSql("SELECT distinct id, Name, Category  from HouseSearch  WHERE HouseSearch MATCH '*"+SearchText+"*';", [], function(tx, result) {
+           	 	//alert("SELECT id, Name, Category  from BookSearch  WHERE BookSearch MATCH '*"+SearchText+"*';");
+
+           	 if (result != null && result.rows != null) {
+         	     for (var i = 0; i < result.rows.length; i++) {
+         	       var row = result.rows.item(i);
+         	       //$('#lbConstruct').append('<br> '+row.id+'  ' + row.id + '. ' + row.Name+ 'REZULTATI');
+        	       $('#lbConstruct').append('<br><button type="button" class=" btn btn-primary btn-lg btn-block" onclick="loadBuild('+row.id+')"> ' + row.Name+ '</button>');
+
+         	     }
+         	   }
+    		//alert(result.rows.item(0).id+ ' '+result.rows.item(0).Name);
+    		//$('#lbConstruct').append('<br>'+result.rows.item(0).Name+' REZULTATI');
+              }, function(e) {
+                console.log("ERROR: " + e.message);
+              });
+
+          }, function(e) {
+            console.log("ERROR: " + e.message);
+          }, function() {
+            console.log("tx success cb");
+
+          });
+
+      	}
+    function Success(){
+     	  return;
+    }
+    
+    var name = "";
+	var cate = "";
+	var year = "";
+    var selImple = "";
+    var selConst = "";
+    /*
+    var options = [
+              		{name:"imple", select:"Select id, Name from Implemen", label: "Implementacija"}
+              		,{name:"const", select:"Select id, Name from Construct", label: "Konstrukcija"}
+              		];
+    */
+    function advOnClick(){
+    	name = $("#srchName").val();
+    	cate = $("#srchCathegor").val();
+    	year = $("#srchYear").val();
+    	selImple = $( "#"+options[0].name ).val();
+    	selConst = $( "#"+options[1].name ).val();
+    	//alert("selImple "+selImple+" selconst"+selConst);
+    	if(selImple == "0"){
+    		selImple = "";
+    	}
+		if(selConst == "0"){
+			selConst = "";
+    	}
+    	//alert("selImple "+selImple+" selconst"+selConst);
+
+    	//if(name != "" || cate != "" || year != "")
+    	loadPage('advsearch.html');
+
+    }
+    
+    
+    function submitAdvSrch(){
+
+        var db = window.sqlitePlugin.openDatabase({name: "mydatabase"});
+		var boolBefore = 0;
+		var boolFirst = 0;
+
+    	//var str = "SELECT distinct id, Name, Category FROM HouseSearch where ";
+    	var str = "SELECT distinct id, Name, Cover FROM House ";
+    	
+		str += " where";
+
+    	if(name != ""){
+    		str += " Name LIKE '%"+name+"%' ";
+    		boolBefore = 1;
+    	}
+    	if(cate != ""){
+    		if(boolBefore == 1){
+    			str +=" OR ";
+    		} 	
+    		str += " Category LIKE '%"+cate+"%' ";
+    		boolBefore = 1;
+    	}
+    	if(year != ""){
+    		if(boolBefore == 1){
+    			str +=" OR ";
+    		}
+    		str += " YearBuilt LIKE '%"+year+"%' ";
+    		boolBefore = 1;
+    	}
+    	if(selImple != ""){
+    		if(boolBefore == 1){
+    			str +=" AND ";
+    		}	
+    		str += " ImpleId = "+selImple;
+    		boolBefore = 1;
+    	}
+		if(selConst != ""){
+			if(boolBefore == 1){
+    			str +=" AND ";
+    		}
+			str += " ConstrId = "+selConst;
+    		boolBefore = 1;
+    	}
+		//alert(str);
+    	db.transaction(function(transaction) {
+           	transaction.executeSql(str, [],
+           	  function(transaction, result) {
+           	   if (result != null && result.rows != null) {
+           	     for (var i = 0; i < result.rows.length; i++) {
+           	       var row = result.rows.item(i);
+        	       //$('#lbConstruct').append('<br><button type="button" class=" btn btn-primary btn-lg btn-block" onclick="loadBuild('+row.id+')"> ' + row.Name+ '</button>');
+        	       $('#lbConstruct').append('<div class="myDiv" onclick="loadBuild('+row.id+')"><div class="bg" style="background: url(images/'+row.Cover+') center center;background-position: center;background-repeat: no-repeat;background-size:100%;"></div>' + row.Name+ '</div>');
+
+           	     }
+           	   }
+           	  },errorHandler);
+           	},errorHandler,nullHandler);
+
+    }
+    
+    function Gallery(id){
+      	
+    	//var db = window.sqlitePlugin.openDatabase({name: "mydatabase"});
+
+      	 $('#lbBuild').html('');
+      	var paths=[];
+      	var fragment = document.createDocumentFragment();
+       	db.transaction(function(transaction) {
+          	transaction.executeSql('SELECT * FROM Picture where houseId ='+id+'', [],
+          	  function(transaction, result) {
+          	   if (result != null && result.rows != null) {
+          	     for (var i = 0; i < result.rows.length; i++) {
+          	       var row = result.rows.item(i);
+          	       // alert("iudsiufds");
+          	      var tmp = {
+    	    	        title: '',
+    	    	        href: 'images/'+row.path,
+    	    	        type: 'image/jpeg',
+    	    	        thumbnail: row.path
+    	    	    };
+          	      //alert("tmp "+tmp);
+					paths.push(tmp);
+          	     }
+          	   }
+          	  },errorHandler);
+          	},errorHandler,function() {
+                console.log("tx success cb");
+				//alert(JSON.stringify(paths));
+                blueimp.Gallery(
+                		paths,
+                	    {
+                	        container: '#uuu',
+                	        carousel: true
+                	    }
+            	);
+
+                
+                
+            }); 
+
+
+    }
+    
+    function GetBuild(id) {
+   	 if (!window.openDatabase) {
+   	  alert('Databases are not supported in this browser.');
+   	  return;
+   	 }
+     //var db = window.sqlitePlugin.openDatabase({name: "mydatabase"});
+
+   	 $('#lbBuild').html('');
+   	 
+    	db.transaction(function(transaction) {
+       	transaction.executeSql('SELECT * FROM House where id ='+id+'', [],
+       	  function(transaction, result) {
+       	   if (result != null && result.rows != null) {
+       	     for (var i = 0; i < result.rows.length; i++) {
+       	       var row = result.rows.item(i);
+/*
+       	 $('#lbBuild').append('<ul>'
+       	    		   +'<li>'+ row.Name + ''
+       	    		   +' </li><li>'+ row.Category + ''
+       	    		   +' </li><li>'+ row.Loc + ''
+       	    		   +' </li><li>'+ row.Long + ''
+       	    		   +' </li><li>'+ row.Lati + '</li></ul>'
+       	    		   + '<a href="#home" class="contentLink" onclick="preLoad('+row.Lati+', '+row.Long+')"> Zemljevid</a>' 
+       	    		   );
+       	    		   */
+       	    	var toAppend = '<div class="list-group">';
+       	    	if(row.Name != null){
+       	    		toAppend += createProviderFormFields('Ime', row.Name);
+       	    	}
+       	    	if(row.Category != null){
+       	    		toAppend += createProviderFormFields('OPIS KONSTRUKCIJE', row.Category);
+
+       	    	}
+       	    	//alert(row.Map);
+       	    	if(row.Lati != null && row.Long != null){
+       	    		toAppend += '<a href="#home" class="contentLink" onclick="preLoad(\'' + row.Lati + '\',\'' + row.Long + '\',\'' + row.Map + '\')"> Zemljevid</a>';
+       	    	}
+       	    	
+       	    	if(row.Arch != null || row.ArchBiro != null || row.ArchUrl != null){
+       	    		var tmpLbl =  "";
+       	    		if(row.Arch != null){
+       	    			tmpLbl += row.Arch+"</br>";
+       	    		}
+       	    		if(row.ArchBiro != null){
+       	    			tmpLbl += row.ArchBiro+"</br>";
+       	    		}
+       	    		if(row.ArchUrl != null){
+       	    			tmpLbl += row.ArchUrl+"</br>";
+       	    		}
+       	    		toAppend += createProviderFormFields('ARHITEKTURA ', tmpLbl);
+
+       	    	}
+       	    	
+       	    	if(row.Construct != null || row.ConstURL != null){
+       	    		var tmpLbl =  "";
+       	    		if(row.Construct != null){
+       	    			tmpLbl += row.Construct+"</br>";
+       	    		}
+       	    		if(row.ConstURL != null){
+       	    			tmpLbl += row.ConstURL+"</br>";
+       	    		}
+       	    		toAppend += createProviderFormFields('ARHITEKTURA ', tmpLbl);
+
+       	    	}
+       	    	
+       	    	if(row.Impl != null || row.ImplURL != null){
+       	    		var tmpLbl =  "";
+       	    		if(row.Impl != null){
+       	    			tmpLbl += row.Impl+"</br>";
+       	    		}
+       	    		if(row.ImplURL != null){
+       	    			tmpLbl += row.ImplURL+"</br>";
+       	    		}
+       	    		toAppend += createProviderFormFields('IZVEDBA ', tmpLbl);
+
+       	    	}
+       	    	
+       	    	if(row.EnergyEconomy != null){
+       	    		toAppend += createProviderFormFields('STOPNJA ENERGIJSKO VARČNE GRADNJE', row.EnergyEconomy);
+
+       	    	}
+       	    	if(row.Parcel != null){
+       	    		toAppend += createProviderFormFields('VELIKOST PARCELE', row.Parcel);
+
+       	    	}
+       	    	
+       	    	if(row.YearBuilt != null){
+       	    		toAppend += createProviderFormFields('Leto izgradnje', row.YearBuilt);
+
+       	    	}
+       	    	
+       	    	if(row.UValue != null){
+       	    		toAppend += createProviderFormFields('U-VREDNOST', row.UValue);
+
+       	    	}
+       	    	
+       	    	if(row.Desc != null){
+       	    		toAppend += createProviderFormFields('Dodatno', row.Desc);
+
+       	    	}
+       	    	
+  	    		$('#title').append("<h4 style='text-align: center;'>"+row.Name+"</h4>");
+  	    		$('#lbBuild').append(toAppend);
+       	     }
+       	   }
+       	  },errorHandler);
+       	},errorHandler,nullHandler); 
+
+   	 return;
+
+   	}
+    
+    function createProviderFormFields(labelTitle, labelDetail) {
+        var part = '<a href="#" class="list-group-item">' ;
+        part += '<h4 class="list-group-item-heading">'+labelTitle+'</h4>';
+        part += '<p class="list-group-item-text">' + labelDetail + '</p>';  
+        part +='</a>';
+        return part;
+    }
+
+    function show()
+    {
+      if(window.event.keyCode == 13)
+       {
+         //alert(window.event.keyCode);
+         var test = $('#txtSearch').val();
+         //alert(test);
+         loadPage("search.html");
+       }
+    }
+    </script>
+
+  </head>
+  <body id="body" onload="init();">
+	<div id="menu" style="display: none; width:100%;position: relative; ">
+		<h3>Menu</h3>
+		<ul>
+			<li><input type="text" id="txtSearch" onKeyPress="show();"/></li>
+			<li><a href="#home" class="contentLink" onclick="loadPage('advancedSearch.html')">Napredno iskanje </a></li>
+			<li class="active"><a href="#home" class="contentLink" onclick="loadPage('home.html')">Domov</a></li>
+		</ul>
+	</div>
+	<div data-role="page" class="pages" id="home" style="width:100%;position: fixed ">
+		<div data-role="header">
+		<a href="#"class="showMenu">Menu</a>
+			<h3>Lesena gradnja</h3>
+		</div><!-- /header -->
+		
+		<div data-role="content" id='container' style="overflow-y:scroll;left:0px;right:0px;padding:0px">	
+		<!--<div class="myDiv" onclick=""><div class="bg" style="background: url(images/Zimic2.jpg) center center;background-position: center;background-repeat: no-repeat;background-size:100%;"></div>lala</div>
+		-->
+		</div>
+		<hr><!-- /content -->
+		<hr><!-- /content -->
+	</div><!-- /page -->
+  </body>
+</html>

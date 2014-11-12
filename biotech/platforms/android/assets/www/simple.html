@@ -1,0 +1,404 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>PhoneGap Dynamic Pages Demo</title>
+
+    <style>
+/*         #container { */
+/*             width: 100%; */
+/*             height: 500px; */
+/*             position: relative; */
+/*             overflow-x:hidden; */
+/*             border: 1px solid black; */
+/*         } */
+
+        button {
+            display:block;
+            text-align:center;
+            margin:0 auto;
+            width:100%;
+            height:2em;
+        }
+
+        .info {
+            border:1px solid black;
+            background:#eeeeff;
+            margin:5px;
+            padding:5px;
+        }
+    </style>
+	<link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.2.min.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <script type="text/javascript" src="js/jquery-2.1.0.min.js"></script>
+ 	<script type="text/javascript" src="js/jquery.mobile-1.4.2.js"></script>
+ 	<script type="text/javascript" src="js/app.js"></script>
+    <script type="text/javascript" charset="utf-8" src="phonegap-1.1.0.js"></script>
+    <script type="text/javascript" charset="utf-8" src="screen3.js"></script>
+    <script type="text/javascript" charset="utf-8">
+
+    /**
+     * Load page into url
+     *
+     * @param url           The url to load
+     * @param onleave       The function to call before leaving
+     * @param onenter       The function to call after loading
+     */
+    function loadPage(url, onleave, onenter) {
+        console.log("loadPage("+url+")");
+
+        // If onleave function specified
+        if (onleave) {
+            onleave();
+        }
+
+        var xmlhttp = new XMLHttpRequest();
+
+        // Callback function when XMLHttpRequest is ready
+        xmlhttp.onreadystatechange=function(){
+            if(xmlhttp.readyState === 4){
+                if (xmlhttp.status === 200) {
+                    console.log("Received content"+xmlhttp.responseText);
+                    document.getElementById('container').innerHTML = xmlhttp.responseText;
+
+                    // If onenter function specified
+                    if (onenter) {
+                        onenter();
+                    }
+                }
+                else {
+                    document.getElementById('container').innerHTML = "Error loading page " + url;
+                }
+            }
+        };
+        xmlhttp.open("GET", url , true);
+        if(url == 'home.html'){
+        	//ListDBValues();
+        	SearchDB();
+        }
+        xmlhttp.send();
+    }
+    
+    function loadBuild(id) {
+    	alert
+    	var url = 'build.html';
+        console.log("loadPage("+url+")");
+
+        var xmlhttp = new XMLHttpRequest();
+
+        // Callback function when XMLHttpRequest is ready
+        xmlhttp.onreadystatechange=function(){
+            if(xmlhttp.readyState === 4){
+                if (xmlhttp.status === 200) {
+                    console.log("Received content"+xmlhttp.responseText);
+                    document.getElementById('container').innerHTML = xmlhttp.responseText;
+
+                    // If onenter function specified
+                    if (onenter) {
+                        onenter();
+                    }
+                }
+                else {
+                    document.getElementById('container').innerHTML = "Error loading page " + url;
+                }
+            }
+        };
+        xmlhttp.open("GET", url , true);
+        GetBuild(id);
+        xmlhttp.send();
+    }
+
+    /**
+     * Function called when page has finished loading.
+     */
+    function init() {
+
+        // Register for PhoneGap deviceready event
+        document.addEventListener("deviceready", function() {console.log("PhoneGap initialized.")}, false);
+
+        // Load first page into container
+        //loadPage("screen1.html");
+        onBodyLoad();
+        loadPage("home.html");
+    }
+    </script>
+    <script type="text/javascript" charset="utf-8">
+    var db;
+    var shortName = 'WebSqlDB';
+    var version = '1.0';
+    var displayName = 'WebSqlDB';
+    var maxSize = 65535;
+    
+    function errorHandler(transaction, error) {
+       alert('Error: ' + error.message + ' code: ' + error.code);
+
+    }
+    function successCallBack() {
+       alert("DEBUGGING: success");
+
+    }
+    function nullHandler(){};
+    function onBodyLoad(){
+
+    	alert("DEBUGGING: we are in the onBodyLoad() function");
+
+    	 if (!window.openDatabase) {
+    	   alert('Databases are not supported in this browser.');
+    	   return;
+    	 }
+
+    	 db = openDatabase(shortName, version, displayName,maxSize);
+
+//     	 db.transaction(function(tx){
+
+//     	   tx.executeSql( 'CREATE TABLE IF NOT EXISTS User(UserId INTEGER NOT NULL PRIMARY KEY, FirstName TEXT NOT NULL, LastName TEXT NOT NULL)',
+//     	[],nullHandler,errorHandler);
+
+//     	 },errorHandler,successCallBack);
+    	 
+    	 db.transaction(function(tx){
+
+   		  
+  		   tx.executeSql( 'CREATE TABLE IF NOT EXISTS House('
+  				   +' HouseId INTEGER NOT NULL PRIMARY KEY,'   
+  				   +' Name TEXT NULL,'                      
+  				   +' Category TEXT NULL,'                  
+  				   +' Loc TEXT NULL,'                       
+  				   +' Long REAL NULL,'                      
+  				   +' Lati REAL NULL,'                      
+  				   +' Arch TEXT NULL,'                      
+  				   +' ArchBiro TEXT NULL,'                  
+  				   +' ArchUrl TEXT NULL,'                   
+  				   +' Construct TEXT NULL,'                 
+  				   +' ConstURL TEXT NULL,'                  
+  				   +' Impl TEXT NULL,'                   	 
+  				   +' ImplURL TEXT NULL,'                   
+  				   +' YearBuilt INTEGER NULL,'              
+  				   +' Duration TEXT NULL,'                  
+  				   +' Construction TEXT NULL,'              
+  				   +' EnergyEconomy TEXT NULL,'             
+  				   +' EnergyHeating TEXT NULL,'             
+  				   +' Area TEXT NULL,'                      
+  				   +' Parcel TEXT NULL,'                    
+  				   +' UValue TEXT NULL,'                    
+  				   +' Tech TEXT NULL,'                      
+  				   +' Desc TEXT NULL)',
+  				   [],nullHandler,errorHandler);
+		 },errorHandler,successCallBack);
+
+    	 var count = 1; 		     		   
+  		 db.transaction(function(transaction) {
+  		   transaction.executeSql('SELECT * FROM House;', [],
+  		     function(transaction, result) {
+  		      if (result == null && result.rows == null) {
+  		  		 alert("YYYYY");
+
+		        	count = 0;
+  		      }
+  		     },errorHandler);
+  		 },errorHandler,nullHandler);
+    	 
+  		 alert("Count "+count);
+    	 if(count == 0){
+    		 db.transaction(function(tx){    		  
+      		   tx.executeSql('INSERT INTO House VALUES ('
+      				   +'1,' 
+      				   +' "Vrtec Šentrupert",'                     
+      				   +' "vzgojno-izobraževalni objekt",'            
+      				   +' "Pot v hribe 20",'            
+      				   +' 100,'            
+      				   +' 200,'            
+      				   +' "Janez Premrl",'            
+      				   +' "Esplanada d.o.o.",'            
+      				   +' "http://www.sentrupert.si/si/za-obcane/zupan/",'            
+      				   +' "SORA inženiring d.o.o.",'            
+      				   +' "",'    
+      				   +' "Jelovica hiše d.o.o.",'            
+      				   +' "",'    
+      				   +' "2010",'            
+      				   +' "6 mesecev",'            
+      				   +' "panelna",'            
+      				   +' "nizkoenergijska",'            
+      				   +' "30 kWh/(m2a)",'            
+      				   +' "1350 m2",'            
+      				   +' "12558 m2",'            
+      				   +' "tena U=0,12 W/m2K, ravna stena U=0,11 W/m2K, poševna stena U=0,11 W/m2K, tla na terenu U=1,1 W/m2K, okna U=1,0-1,2 W/m2K",' 
+      				   +' "biomasa",'            
+      				   +' "Inovativen,  sodoben in energetsko varčen vrtec v Sloveniji")',[],
+      				     nullHandler,errorHandler);
+      		 },errorHandler,successCallBack);
+
+    	 }
+    	 
+    	}
+    
+    function ListDBValues() {
+  	  alert('tttttt');
+
+    	 if (!window.openDatabase) {
+    	  alert('Databases are not supported in this browser.');
+    	  return;
+    	 }
+
+    	 $('#lbConstruct').html('');
+    	 
+     	db.transaction(function(transaction) {
+        	transaction.executeSql('SELECT * FROM House;', [],
+        	  function(transaction, result) {
+        	   if (result != null && result.rows != null) {
+        	     for (var i = 0; i < result.rows.length; i++) {
+        	       var row = result.rows.item(i);
+        	       //<a href="#home" class="contentLink" onclick="loadPage('screen2.html')
+        	       $('#lbConstruct').append('<br><a href="#home" class="contentLink" onclick="loadBuild('+row.HouseId+')"> ' + row.HouseId + '. ' + row.Name+ ' ' + row.Category+'</a>');
+        	       //$('#lbConstruct').append('<br> ' + row.HouseId + '. ' + row.Name+ ' ' + row.Category);
+        	     }
+        	   }
+        	  },errorHandler);
+        	},errorHandler,nullHandler); 
+
+    	 
+    	 return;
+
+    	}
+    function SearchDB() {
+
+      	 if (!window.openDatabase) {
+      	  alert('Databases are not supported in this browser.');
+      	  return;
+      	 }
+
+      	db.transaction(function(tx){
+
+     		  
+   		   tx.executeSql( 'CREATE VIRTUAL TABLE BookSearch USING fts4(Name, Category, Construct);',
+   				   [],nullHandler,errorHandler);
+   		   tx.executeSql( 'INSERT INTO BookSearch SELECT Name, Category, Construct FROM House;;',
+   	   				   [],nullHandler,errorHandler);
+ 		 },errorHandler,Success);
+      	 /*
+      	db.transaction(function(transaction) {
+          	transaction.executeSql('CREATE VIRTUAL TABLE BookSearch USING fts4(Name, Category, Construct);'
+          	+'INSERT INTO BookSearch SELECT Name, Category, Construct FROM House;', [],
+          	  function(transaction, result) {
+          	   if (result != null && result.rows != null) {
+          	     for (var i = 0; i < result.rows.length; i++) {
+          	       var row = result.rows.item(i);
+          	       //<a href="#home" class="contentLink" onclick="loadPage('screen2.html')
+          	       $('#lbConstruct').append('<br><a href="#home" class="contentLink" onclick="loadBuild('+row.HouseId+')"> ' + row.HouseId + '. ' + row.Name+ ' ' + row.Category+'</a>');
+          	       //$('#lbConstruct').append('<br> ' + row.HouseId + '. ' + row.Name+ ' ' + row.Category);
+          	     }
+          	   }
+          	  },errorHandler);
+          	},errorHandler,nullHandler); 
+      	*/
+      	 return;
+
+      	}
+    function Success(){
+    	alert('OK');
+     	  return;
+    }
+    
+    function GetBuild(id) {
+   	 if (!window.openDatabase) {
+   	  alert('Databases are not supported in this browser.');
+   	  return;
+   	 }
+
+   	 $('#lbBuild').html('');
+   	 
+    	db.transaction(function(transaction) {
+       	transaction.executeSql('SELECT * FROM House where HouseId ='+id+'', [],
+       	  function(transaction, result) {
+       	   if (result != null && result.rows != null) {
+       	     for (var i = 0; i < result.rows.length; i++) {
+       	       var row = result.rows.item(i);
+       	  	  alert('<ul>'
+       	    		   +'<li>'+ row.Name + ''
+       	    		   +'</li><li>'+ row.Category + '' 
+       	    		   +'</li><li>'+ row.Loc + ''
+       	    		   +'</li><li>'+ row.Long + ''
+       	    		   +'</li><li>'+ row.Lati + ''
+       	    		   +'</li><li>'+ row.Arch+ '</li></ul>');
+
+       	       $('#lbBuild').append('<ul>'
+       	    		   +'<li>'+ row.Name + ''
+       	    		   +' </li><li>'+ row.Category + ''
+       	    		   +' </li><li>'+ row.Loc + ''
+       	    		   +' </li><li>'+ row.Long + ''
+       	    		   +' </li><li>'+ row.Lati + ''
+       	    		   +' </li><li>'+ row.Arch+ '</li></ul>' /*+ 
+       	    		   +' <br>'+ row.ArchBiro       + 
+       	    		   +' <br>'+ row.ArchUrl        + 
+       	    		   +' <br>'+ row.Construct      + 
+       	    		   +' <br>'+ row.ConstURL       + 
+       	    		   +' <br>'+ row.Impl        	+ 
+       	    		   +' <br>'+ row.ImplURL        + 
+       	    		   +' <br>'+ row.YearBuilt      + 
+       	    		   +' <br>'+ row.Duration       + 
+       	    		   +' <br>'+ row.Construct      + 
+       	    		   +' <br>'+ row.EnergyEconomy  + 
+       	    		   +' <br>'+ row.EnergyEconomy  + 
+       	    		   +' <br>'+ row.Area           + 
+       	    		   +' <br>'+ row.Parcel         + 
+       	    		   +' <br>'+ row.UValue         + 
+       	    		   +' <br>'+ row.Tech           + 
+       	    		   +' <br>'+ row.Desc+''*/);
+       	     }
+       	   }
+       	  },errorHandler);
+       	},errorHandler,nullHandler); 
+
+//     	HouseId INTEGER NOT NULL PRIMARY KEY,'   
+// 		   +' Name TEXT NULL,'                      
+// 		   +' Category TEXT NULL,'                  
+// 		   +' Loc TEXT NULL,'                       
+// 		   +' Long REAL NULL,'                      
+// 		   +' Lati REAL NULL,'                      
+// 		   +' Arch TEXT NULL,'                      
+// 		   +' ArchBiro TEXT NULL,'                  
+// 		   +' ArchUrl TEXT NULL,'                   
+// 		   +' Construct TEXT NULL,'                 
+// 		   +' ConstURL TEXT NULL,'                  
+// 		   +' Impl TEXT NULL,'                   	 
+// 		   +' ImplURL TEXT NULL,'                   
+// 		   +' YearBuilt INTEGER NULL,'              
+// 		   +' Duration TEXT NULL,'                  
+// 		   +' Construction TEXT NULL,'              
+// 		   +' EnergyEconomy TEXT NULL,'             
+// 		   +' EnergyHeating TEXT NULL,'             
+// 		   +' Area TEXT NULL,'                      
+// 		   +' Parcel TEXT NULL,'                    
+// 		   +' UValue TEXT NULL,'                    
+// 		   +' Tech TEXT NULL,'                      
+// 		   +' Desc TEXT NULL)',
+   	 return;
+
+   	}
+
+    
+    </script>
+
+  </head>
+  <body id="body" onload="init();">
+	<div id="menu" style="display: none;">
+	<h3>Menu</h3>
+	<ul>
+		<li class="active"><a href="#home" class="contentLink" onclick="loadPage('home.html')">Home </a></li>
+		<!-- <button name="buttonClick" onclick="callMap()">Click Me!</button> -->
+		<li><a href="#home" class="contentLink" onclick="loadPage('screen2.html')">Show screen 2</a></li>
+		<li><a href="#home" class="contentLink" onclick="loadPage('screen3.html', null, deviceInfo);">Show screen 3</a></li>
+	</ul>
+</div>
+<div data-role="page" class="pages" id="home">
+	<div data-role="header">
+	<a href="#"class="showMenu">Menu</a>
+		<h1>FB Style Menu</h1>
+	</div><!-- /header -->
+	<div data-role="content" id='container'>
+	</div><!-- /content -->
+</div><!-- /page -->
+  </body>
+</html>

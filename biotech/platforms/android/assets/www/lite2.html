@@ -1,0 +1,243 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta name="viewport" content="width=320; user-scalable=no" />
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+
+    <title>SQLitePlugin test</title>
+
+    <link rel="stylesheet" href="css/qunit-1.5.0.css" />
+
+    <script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+   	<script type="text/javascript" src="js/jquery-2.1.0.min.js"></script>
+    
+    <script type="text/javascript" charset="utf-8" src="SQLitePlugin.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/qunit-1.5.0.js"></script>
+
+    <script>
+
+    document.addEventListener("deviceready", doTest, false);
+
+    function doTest() {
+    	
+    	
+       var db = window.sqlitePlugin.openDatabase({name: "Database", bgType: 1});
+
+
+      test("db transaction test", function() {
+
+
+        ok(!!db, "db object");
+
+        stop(10);
+
+        db.transaction(function(tx) {
+
+          start(1);
+          ok(!!tx, "tx object");
+
+          tx.executeSql('DROP TABLE IF EXISTS House');
+          //tx.executeSql('CREATE TABLE IF NOT EXISTS test_table (id integer primary key, data text, data_num integer)');
+          
+          tx.executeSql('CREATE TABLE IF NOT EXISTS House (id integer primary key,'
+               +' Name TEXT NULL,'                      
+			   +' Category TEXT NULL,'                  
+			   +' Loc TEXT NULL,'                       
+			   +' Long TEXT NULL,'                      
+			   +' Lati TEXT NULL,'                      
+			   +' Arch TEXT NULL,'                      
+			   +' ArchBiro TEXT NULL,'                  
+			   +' ArchUrl TEXT NULL,'                   
+			   +' Construct TEXT NULL,'                 
+			   +' ConstURL TEXT NULL,'                  
+			   +' Impl TEXT NULL,'                   	 
+			   +' ImplURL TEXT NULL,'                   
+			   +' YearBuilt TEXT NULL,'              
+			   +' Duration TEXT NULL,'                  
+			   +' Construction TEXT NULL,'              
+			   +' EnergyEconomy TEXT NULL,'             
+			   +' EnergyHeating TEXT NULL,'             
+			   +' Area TEXT NULL,'                      
+			   +' Parcel TEXT NULL,'                    
+			   +' UValue TEXT NULL,'                    
+			   +' Tech TEXT NULL,'                      
+			   +' Desc TEXT NULL)');
+
+          tx.executeSql('INSERT INTO House (Name ,'                      
+                  +' Category ,'                  
+                  +' Loc ,'                       
+                  +' Long,'                      
+                  +' Lati,'                      
+                  +' Arch ,'                      
+                  +' ArchBiro ,'                  
+                  +' ArchUrl ,'                   
+                  +' Construct ,'                 
+                  +' ConstURL ,'                  
+                  +' Impl ,'                   	 
+                  +' ImplURL ,'                   
+                  +' YearBuilt,'              
+                  +' Duration ,'                   
+                  +' Construction ,'              
+                  +' EnergyEconomy ,'             
+                  +' EnergyHeating ,'             
+                  +' Area ,'                      
+                  +' Parcel ,'                    
+                  +' UValue ,'                    
+                  +' Tech ,'                      
+                  +' Desc ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+                  , ["vzgojno-izobraževalni objekt", "Pot v hribe 20","100",
+                                            "200","Janez Premrl","Esplanada d.o.o.",
+                                            "http://www.sentrupert.si/si/za-obcane/zupan/","SORA inženiring d.o.o.",
+                                            "","Jelovica hiše d.o.o.","","2010","6 mesecev","panelna","nizkoenergijska","30 kWh/(m2a)","1350 m2",
+                                            "12558 m2","tena U=0,12 W/m2K, ravna stena U=0,11 W/m2K, poševna stena U=0,11 W/m2K, tla na terenu U=1,1 W/m2K, okna U=1,0-1,2 W/m2K",
+                                            "biomasa","Inovativen,  sodoben in energetsko varčen vrtec v Sloveniji"], function(tx, res) {
+
+
+                                              }, function(e) {
+              console.log("ERROR: " + e.message);
+            });
+          
+          tx.executeSql('INSERT INTO House (Name ,'                      
+                  +' Category ,'                  
+                  +' Loc ,'                       
+                  +' Long,'                      
+                  +' Lati,'                      
+                  +' Arch ,'                      
+                  +' ArchBiro ,'                  
+                  +' ArchUrl ,'                   
+                  +' Construct ,'                 
+                  +' ConstURL ,'                  
+                  +' Impl ,'                   	 
+                  +' ImplURL ,'                   
+                  +' YearBuilt,'              
+                  +' Duration ,'                   
+                  +' Construction ,'              
+                  +' EnergyEconomy ,'             
+                  +' EnergyHeating ,'             
+                  +' Area ,'                      
+                  +' Parcel ,'                    
+                  +' UValue ,'                    
+                  +' Tech ,'                      
+                  +' Desc ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+                  , ["Test2", "Pot v hribe 20","100",
+                                            "200","Janez Premrl","Esplanada d.o.o.",
+                                            "http://www.sentrupert.si/si/za-obcane/zupan/","SORA inženiring d.o.o.",
+                                            "","Jelovica hiše d.o.o.","","2010","6 mesecev","panelna","nizkoenergijska","30 kWh/(m2a)","1350 m2",
+                                            "12558 m2","tena U=0,12 W/m2K, ravna stena U=0,11 W/m2K, poševna stena U=0,11 W/m2K, tla na terenu U=1,1 W/m2K, okna U=1,0-1,2 W/m2K",
+                                            "biomasa","Inovativen,  sodoben in energetsko varčen vrtec v Sloveniji"], function(tx, res) {
+
+
+                                              }, function(e) {
+              console.log("ERROR: " + e.message);
+            });
+        }, function(e) {
+          console.log("ERROR: " + e.message);
+        }, function() {
+          console.log("tx success cb");
+          ok(true, "tx success cb");
+          start(1);
+        });
+        
+
+      });
+      
+      
+
+
+ 	 	alert('aa');
+
+        db.transaction(function(tx) {
+
+          tx.executeSql("SELECT id, Name, Category  from House;", [], function(tx, result) {
+       	 	alert('yyy');
+
+        	  if (result != null && result.rows != null) {
+         	     for (var i = 0; i < result.rows.length; i++) {
+         	       var row = result.rows.item(i);
+         	       $('#lbConstruct').append('<br><a href="#home" class="contentLink" onclick="loadBuild('+row.id+')"> ' + row.id + '. ' + row.Name+ ' ' + row.Category+'</a>');
+         	     }
+         	   }
+         	 	alert('cc');
+		alert(result.rows.item(0).data_num);
+              //$('#lbConstruct').append('<br>'+result.rows.item(0).Name+' TEST1');
+		
+          }, function(e) {
+            console.log("ERROR: " + e.message);
+          });
+        }, function(e) {
+          console.log("ERROR: " + e.message);
+        }, function() {
+          console.log("tx success cb");
+
+        });
+        
+        db.transaction(function(tx) {
+            tx.executeSql('DROP TABLE IF EXISTS BookSearch');
+
+            tx.executeSql('CREATE VIRTUAL TABLE IF NOT EXISTS BookSearch USING fts4(id, Name ,'                      
+                    +' Category ,'                  
+                    +' Loc ,'                       
+                    +' Long,'                      
+                    +' Lati,'                      
+                    +' Arch ,'                      
+                    +' ArchBiro ,'                  
+                    +' ArchUrl ,'                   
+                    +' Construct ,'                 
+                    +' ConstURL ,'                  
+                    +' Impl ,'                   	 
+                    +' ImplURL ,'                   
+                    +' YearBuilt,'              
+                    +' Duration ,'                   
+                    +' Construction ,'              
+                    +' EnergyEconomy ,'             
+                    +' EnergyHeating ,'             
+                    +' Area ,'                      
+                    +' Parcel ,'                    
+                    +' UValue ,'                    
+                    +' Tech ,'                      
+                    +' Desc)');
+            
+            tx.executeSql('INSERT INTO BookSearch SELECT * FROM House;');
+            
+            
+            tx.executeSql("SELECT id, Name, Category  from BookSearch  WHERE BookSearch MATCH 'test2';", [], function(tx, result) {
+           	 	alert('yyy');
+
+           	 if (result != null && result.rows != null) {
+         	     for (var i = 0; i < result.rows.length; i++) {
+         	       var row = result.rows.item(i);
+         	       $('#lbConstruct').append('<br> '+row.id+'  ' + row.id + '. ' + row.Name+ 'REZULTATI');
+         	     }
+         	   }
+    		alert(result.rows.item(0).id+ ' '+result.rows.item(0).Name);
+    		$('#lbConstruct').append('<br>'+result.rows.item(0).Name+' REZULTATI');
+              }, function(e) {
+                console.log("ERROR: " + e.message);
+              });
+
+          }, function(e) {
+            console.log("ERROR: " + e.message);
+          }, function() {
+            console.log("tx success cb");
+
+          });
+
+
+
+
+      
+  }
+
+    </script>
+
+  </head>
+  <body>
+    <div id="qunit"></div>
+    <div id="lbConstruct" ></div>
+    test
+    <script type="text/javascript" src="js/index.js"></script>
+    <script type="text/javascript">
+        app.initialize();
+    </script>
+  </body>
+</html>
